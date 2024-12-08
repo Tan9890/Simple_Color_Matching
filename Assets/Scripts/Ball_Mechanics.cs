@@ -4,17 +4,24 @@ using UnityEngine;
 
 public class Ball_Mechanics : MonoBehaviour
 {
+    public static Ball_Mechanics instance;
+
     public GameObject Ball_Prefab, Board_Holder;
+    public float Saturation, Value;
     public int GridSize = 8, maxMatches = 2;
     public float Ball_Spacing = 1f;
     public List<GameObject> _spawnedBalls;
     public List<Color> RandomColors, Colors;
     public bool testClick;
 
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        if (!instance)
+            instance = this;
+        else
+            Destroy(gameObject);
     }
 
     // Update is called once per frame
@@ -22,7 +29,10 @@ public class Ball_Mechanics : MonoBehaviour
     {
         if (testClick)
         {
-            RandomColorAssigner();
+            //RandomColorAssigner();
+            foreach (GameObject g in _spawnedBalls)
+                Destroy(g);
+            SpawnBalls();
             testClick = false;
         }
     }
@@ -35,7 +45,8 @@ public class Ball_Mechanics : MonoBehaviour
             for (int j = 0; j < GridSize; j++)
             {
                 GameObject tempBall = Instantiate(Ball_Prefab, Board_Holder.transform);
-                tempBall.transform.localPosition = new Vector3((i * Ball_Spacing) - (GridSize/2f) + 0.5f, 0, (j * Ball_Spacing) - (GridSize / 2f) + 0.5f);
+                tempBall.transform.localPosition = new Vector3((i * Ball_Spacing) - (GridSize / 2f) + 0.5f, 0, (j * Ball_Spacing) - (GridSize / 2f) + 0.5f);
+                tempBall.GetComponentInChildren<MeshRenderer>().transform.localRotation = Quaternion.Euler(new Vector3(Random.Range(0, 360f), Random.Range(0, 360f), Random.Range(0, 360f)));
                 _spawnedBalls.Add(tempBall);
             }
         }
@@ -47,7 +58,7 @@ public class Ball_Mechanics : MonoBehaviour
     {
         Color randomColor;
         RandomColors = new List<Color>();
-        for (int i = 0; i < (GridSize*GridSize) / 2; i++)
+        for (int i = 0; i < (GridSize * GridSize) / 2; i++)
         {
             //randomColor = Random.ColorHSV(0,1f,1f,1f,0.5f,1f);
             randomColor = Colors[i];
@@ -55,7 +66,7 @@ public class Ball_Mechanics : MonoBehaviour
             for (int j = 0; j < maxMatches; j++)
             {
                 GameObject randomBall = FisherYatesShuffler();
-                randomBall.GetComponentInChildren<MeshRenderer>().material.SetColor("_Color", randomColor);
+                randomBall.GetComponentInChildren<MeshRenderer>().material.SetColor("_MainColor", randomColor);
             }
         }
     }
@@ -63,10 +74,10 @@ public class Ball_Mechanics : MonoBehaviour
     void ColorsGenerator()
     {
         Colors = new List<Color>();
-        int maxLength = (GridSize * GridSize) / 2;
+        int maxLength = (GridSize * GridSize) / maxMatches;
         for (int i = 0; i < maxLength; i++)
         {
-            Colors.Add(Color.HSVToRGB((1f / maxLength) * i, 1f, 1f));
+            Colors.Add(Color.HSVToRGB((1f / maxLength) * i, Saturation, Value));
         }
     }
 
@@ -77,4 +88,8 @@ public class Ball_Mechanics : MonoBehaviour
         _spawnedBalls.RemoveAt(_randomIndex);
         return tempRandomBall;    
     }
+
+
+
+
 }
